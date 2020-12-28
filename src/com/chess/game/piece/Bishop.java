@@ -13,6 +13,7 @@ public class Bishop extends Piece implements Movable {
     super(color);
     this.name = "Bishop";
     this.key = "B";
+    this.mergeable = new Mergeable();
     super.setIconPath();
   }
 
@@ -30,6 +31,10 @@ public class Bishop extends Piece implements Movable {
     addMoves(moves, board, currentSquare, -1, 1);
     addMoves(moves, board, currentSquare, -1, -1);
 
+    if (mergeable.mergedPiece != null) {
+      moves.addAll(mergeable.mergedPiece.getLegalMoves(board, currentSquare));
+    }
+
     return moves;
   }
 
@@ -41,7 +46,11 @@ public class Bishop extends Piece implements Movable {
     while (map.get(nextCoordinate) != null) {
       if (map.get(nextCoordinate).isEmpty()) {
         moves.add(nextCoordinate);
-      } else if (map.get(nextCoordinate).getPiece().color != color) {
+      } else if (map.get(nextCoordinate).getPiece().getColor() != color) {
+        moves.add(nextCoordinate);
+        break;
+      } else if (!mergeable.hasMerged && map.get(nextCoordinate).getPiece().getColor() == color
+          && map.get(nextCoordinate).getPiece().mergeable != null) {
         moves.add(nextCoordinate);
         break;
       } else {
@@ -50,5 +59,13 @@ public class Bishop extends Piece implements Movable {
 
       nextCoordinate = CoordinateUtils.offset(nextCoordinate, fileDirection, rankDirection);
     }
+  }
+
+  @Override
+  public void move(Square square) {
+    if (square.getPiece() != null && square.getPiece().getColor() == color) {
+      mergeable.mergeWith(square.getPiece());
+    }
+    super.move(square);
   }
 }

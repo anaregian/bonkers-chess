@@ -15,55 +15,65 @@ public class Pawn extends Piece implements Movable {
     super(color);
     this.name = "Pawn";
     this.key = "p";
+    this.mergeable = new Mergeable();
     super.setIconPath();
   }
 
   @Override
   public List<Coordinate> getLegalMoves(ChessBoard board) {
+    return getLegalMoves(board, getSquare());
+  }
+
+  @Override
+  public List<Coordinate> getLegalMoves(ChessBoard board, Square currentSquare) {
     List<Coordinate> moves = new ArrayList<>();
 
-    addAdvancingMove(moves, board, 1);
+    addAdvancingMove(moves, board, currentSquare, 1);
 
     if (!hasMoved) {
-      addAdvancingMove(moves, board, 2);
+      addAdvancingMove(moves, board, currentSquare, 2);
     }
 
-    addCapture(moves, board, -1);
-    addCapture(moves, board, 1);
+    addCapture(moves, board, currentSquare, -1);
+    addCapture(moves, board, currentSquare, 1);
+
+    if (mergeable.mergedPiece != null) {
+      moves.addAll(mergeable.mergedPiece.getLegalMoves(board, currentSquare));
+    }
 
     return moves;
   }
 
-  private void addAdvancingMove(List<Coordinate> moves, ChessBoard board, int offset) {
+  private void addAdvancingMove(List<Coordinate> moves, ChessBoard board, Square currentSquare, int offset) {
     int direction = color == PieceColor.Black ? -1 : 1;
     var map = board.getCoordinateSquareMap();
-    var targetCoordinate = CoordinateUtils.offset(getSquare().getCoordinate(), 0, direction * offset);
+    var targetCoordinate = CoordinateUtils.offset(currentSquare.getCoordinate(), 0, direction * offset);
 
-    if (map.get(targetCoordinate) != null && map.get(targetCoordinate).isEmpty()) {
+    if (map.get(targetCoordinate).isEmpty()) {
       moves.add(targetCoordinate);
     }
   }
 
-  private void addCapture(List<Coordinate> moves, ChessBoard board, int captureDirection) {
+  private void addCapture(List<Coordinate> moves, ChessBoard board, Square currentSquare, int captureDirection) {
     int direction = color == PieceColor.Black ? -1 : 1;
     var map = board.getCoordinateSquareMap();
-    var captureCoordinate = CoordinateUtils.offset(getSquare().getCoordinate(), captureDirection, direction);
+    var captureCoordinate = CoordinateUtils.offset(currentSquare.getCoordinate(), captureDirection, direction);
 
-    if (captureCoordinate != null && map.get(captureCoordinate) != null && map.get(captureCoordinate).getPiece() != null
-        && map.get(captureCoordinate).getPiece().getColor() != color) {
+    if (map.get(captureCoordinate) != null && map.get(captureCoordinate).getPiece() != null
+        && (map.get(captureCoordinate).getPiece().getColor() != color
+            || !mergeable.hasMerged && map.get(captureCoordinate).getPiece().getColor() == color
+                && map.get(captureCoordinate).getPiece().mergeable != null)) {
       moves.add(captureCoordinate);
     }
 
   }
 
   @Override
-  public List<Coordinate> getLegalMoves(ChessBoard board, Square currentSquare) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public void move(Square square) {
-    super.move(square);
     hasMoved = true;
+    if (square.getPiece() != null && square.getPiece().getColor() == color) {
+      mergeable.mergeWith(square.getPiece());
+    }
+    super.move(square);
   }
 }

@@ -33,6 +33,7 @@ public class ChessBoard {
   }
 
   public void setValidMoves(List<Coordinate> validMoves) {
+    this.validMoves = new ArrayList<>();
     this.validMoves = validMoves;
   }
 
@@ -41,6 +42,7 @@ public class ChessBoard {
   }
 
   public void reset() {
+    validMoves = new ArrayList<>();
     initializeBoard();
   }
 

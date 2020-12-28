@@ -79,6 +79,10 @@ public class SquarePanel extends JPanel {
     addMouseListener(new MouseListener() {
       @Override
       public void mouseClicked(MouseEvent e) {
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
         if (boardPanel.getSelectedSquarePanel() != null
             && boardPanel.getBoard().getValidMoves().contains(square.getCoordinate())) {
           movePiece(boardPanel);
@@ -86,10 +90,6 @@ public class SquarePanel extends JPanel {
           getValidMoves(boardPanel);
         }
         boardPanel.draw(boardPanel.getBoard());
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
       }
 
       @Override

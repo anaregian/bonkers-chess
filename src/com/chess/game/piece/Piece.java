@@ -8,6 +8,7 @@ public abstract class Piece implements Movable {
   protected String iconPath;
   protected PieceColor color;
   protected Square square;
+  protected Mergeable mergeable = null;
 
   public Piece(PieceColor color) {
     this.color = color;
